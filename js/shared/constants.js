@@ -46,19 +46,3 @@ export const TRANS_LANGS = [
   { value: "vi", label: "越南文" },
   { value: "th", label: "泰文" },
 ];
-
-// ---- 云端同步 ----
-export const SYNC_BUNDLE_KEY = "langeasySyncBundle";
-export const SYNC_META_KEY = "langeasyLastCloudSyncAt";
-export const SYNC_ATTEMPT_KEY = "langeasyLastCloudSyncAttemptAt";
-export const SYNC_MAX_BYTES = 7800;
-export const SYNC_CLOCK_SKEW_MS = 5000;
-export const SYNC_SETTINGS_KEYS = [
-  LS_KEYS.GET_WORD,
-  LS_KEYS.MODIFIER_ENABLED,
-  LS_KEYS.MODIFIER_KEY,
-  LS_KEYS.MINI_MODE,
-  TRANS_LANG_KEY,
-  VENDOR_STORAGE_KEY,
-  CUSTOM_VENDORS_KEY,
-];

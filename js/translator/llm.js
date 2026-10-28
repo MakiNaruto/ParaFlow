@@ -1,6 +1,6 @@
 // 大模型翻译 (LLM) - 支持 OpenAI 兼容协议与 Anthropic 协议。
 // 用户经弹窗添加「大模型翻译」自定义翻译源，可自填接口地址 / API Key / 模型 / 提示词。
-// 凭证与提示词保存在自定义翻译源记录（xtCustomVendors）中；apiKey 不进云端同步。
+// 凭证与提示词保存在自定义翻译源记录（xtCustomVendors）中，使用本地存储。
 
 // ---- 各协议的默认值（新增源时预填） ----
 export const LLM_PROTOCOL_LABELS = {

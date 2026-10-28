@@ -16,16 +16,5 @@ strong { font-weight:600; }
 .switch:checked { background:var(--accent); }
 .switch:checked::before { transform:translateX(15px); }
 select { border:1px solid var(--line); border-radius:8px; padding:8px 10px; color:var(--ink); background:var(--canvas); max-width:180px; }
-.sync-card { padding:20px; }
-.sync-card p { color:var(--muted); font-size:12px; margin:6px 0 18px; }
-.sync-actions { display:flex; gap:10px; flex-wrap:wrap; }
-.sync-btn { padding:9px 15px; border:1px solid var(--line); background:var(--surface); border-radius:9px; color:var(--ink); font-size:13px; }
-.sync-btn:hover { background:var(--hover); }
-.sync-btn.primary { background:var(--accent); border-color:var(--accent); color:white; }
-.sync-btn.primary:hover { background:var(--accent-hover); }
-.sync-card .sync-status { margin:12px 0 0; min-height:0; }
-.sync-status:empty { display:none; }
-.sync-card .error { color:var(--danger); }
-.sync-card .success { color:#497151; }
 footer { color:var(--muted); text-align:center; font-size:12px; margin-top:28px; }
 @media(max-width:420px) { .settings-page { padding:24px 18px; } .setting-row { padding:16px; gap:12px; } }

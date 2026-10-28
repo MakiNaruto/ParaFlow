@@ -1,10 +1,9 @@
 // ===== Service Worker (ES Module) =====
 // 薄入口：注册右键菜单 + 消息路由。
-// 各类消息处理见 js/bg/：bbdc-api / wordbook / translate-handlers / sync。
+// 各类消息处理见 js/bg/：bbdc-api / wordbook / translate-handlers。
 import { handleBbdc } from "./js/bg/bbdc-api.js";
 import { handleWordbook } from "./js/bg/wordbook.js";
 import { handleTranslate } from "./js/bg/translate-handlers.js";
-import { handleSync } from "./js/bg/sync.js";
 
 // Clicking the toolbar action opens the persistent browser side panel.
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => {
@@ -14,7 +13,7 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error
 const TRANS_MENU_ID = "xt-translate";
 
 // 消息路由：依次尝试各 handler，首个命中者处理（返回 true 表示异步响应）。
-const HANDLERS = [handleBbdc, handleWordbook, handleTranslate, handleSync];
+const HANDLERS = [handleBbdc, handleWordbook, handleTranslate];
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg) return;
