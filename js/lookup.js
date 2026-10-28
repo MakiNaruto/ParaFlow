@@ -42,7 +42,7 @@
             <span id="langeasyWord">${word}</span>
             <span id="actionButtons">
               <button id="wordBtn" class="action-btn" title="添加/删除单词" aria-label="收藏或移除单词"></button>
-              <button id="sentenceBtn" class="action-btn" title="添加/删除例句" aria-label="收藏或移除例句"></button>
+              <button id="sentenceBtn" class="action-btn" title="收藏当前单词所在的例句" aria-label="收藏当前单词所在的例句"></button>
             </span>
           </div>
 
@@ -227,20 +227,21 @@
     if (!btn) return;
     btn.style.display = isLoggedIn ? '' : 'none';
     if (!isLoggedIn) {
-      btn.innerHTML = '📕';
+      btn.textContent = '添加单词';
       btn.className = 'action-btn action-disabled';
       btn.title = '请登录 bbdc.cn 后添加单词';
       return;
     }
     if (exists) {
-      btn.innerHTML = '🗑';
+      btn.textContent = '删除单词';
       btn.className = 'action-btn action-delete';
-      btn.title = '从单词本删除';
+      btn.title = '从不背单词生词本移除当前单词';
     } else {
-      btn.innerHTML = '📕';
+      btn.textContent = '添加单词';
       btn.className = 'action-btn action-add';
-      btn.title = '添加到单词本';
+      btn.title = '收藏当前单词到不背单词生词本';
     }
+    btn.setAttribute('aria-label', btn.title);
   }
 
   // --- Update Sentence Button ---
@@ -248,28 +249,26 @@
     const btn = document.getElementById('sentenceBtn');
     if (!btn) return;
     if (mode === 'delete') {
-      btn.innerHTML = '🗑';
+      btn.textContent = '删除例句';
       btn.className = 'action-btn action-delete';
       btn.title = '删除此例句';
       btn.dataset.mode = 'delete';
     } else {
       if (currentSentence) {
-        btn.innerHTML = '💬';
+        btn.textContent = '添加例句';
         btn.className = 'action-btn action-add';
-        btn.title = '添加例句';
+        btn.title = '收藏当前单词所在的例句';
         btn.dataset.mode = 'add';
       } else {
         btn.style.display = 'none';
       }
     }
+    btn.setAttribute('aria-label', btn.title);
   }
 
   // --- Add Word ---
   function addWord(word) {
     if (!isLoggedIn) return;
-    const btn = document.getElementById('wordBtn');
-    if (btn) btn.innerHTML = '⏳';
-
     chrome.runtime.sendMessage({
       source: 'langeasyLookup',
       method: 'addNewWord',
@@ -296,9 +295,6 @@
 
   // --- Remove Word ---
   function removeWord(word) {
-    const btn = document.getElementById('wordBtn');
-    if (btn) btn.innerHTML = '⏳';
-
     chrome.runtime.sendMessage({
       source: 'langeasyLookup',
       method: 'removeWord',
@@ -310,15 +306,9 @@
         updateWordBtn(false);
         // Reload stored sentences (they are kept independent of the word)
         loadStoredSentences(word);
-        // Update sentence button
         if (currentSentence) {
-          updateSentenceBtn('add');
+          checkSentenceContext(word, currentSentence, currentUrl);
         }
-        // Notify parent page to remove underline for this word
-        window.parent.postMessage({
-          methodName: 'removeUnderline',
-          word: word
-        }, '*');
       }
     });
   }
@@ -326,9 +316,6 @@
   // --- Add Sentence ---
   function addSentence(word, sentence, url) {
     if (!sentence) return;
-
-    const btn = document.getElementById('sentenceBtn');
-    if (btn) btn.innerHTML = '⏳';
 
     chrome.runtime.sendMessage({
       source: 'langeasyLookup',
@@ -348,9 +335,6 @@
   // --- Remove Sentence by Context ---
   function removeSentenceByContext(word, sentence, url) {
     if (!sentence) return;
-
-    const btn = document.getElementById('sentenceBtn');
-    if (btn) btn.innerHTML = '⏳';
 
     chrome.runtime.sendMessage({
       source: 'langeasyLookup',
@@ -494,6 +478,14 @@
         updateHeight();
       });
   }
+
+  // Keep the open lookup card consistent with changes from the collection page.
+  // Storage key matches STORAGE_KEYS.SENTENCES in shared/constants.js.
+  chrome.storage.onChanged.addListener(function (changes, area) {
+    if (area !== 'local' || !changes.bbdc_sentences || !currentWord) return;
+    loadStoredSentences(currentWord);
+    checkSentenceContext(currentWord, currentSentence, currentUrl);
+  });
 
   // --- Listen for messages from content script ---
   window.addEventListener('message', function (e) {

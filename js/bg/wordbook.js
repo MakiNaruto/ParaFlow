@@ -102,6 +102,17 @@ export function handleWordbook(msg, _sender, sendResponse) {
     return true;
   }
 
+  // 只删除该单词的全部例句，不修改本地或远程生词本。
+  if (msg.method === "removeWordSentences") {
+    chrome.storage.local.get(STORAGE_KEYS.SENTENCES, (data) => {
+      const sentences = (data[STORAGE_KEYS.SENTENCES] || []).filter((s) => s.word !== msg.word);
+      chrome.storage.local.set({ [STORAGE_KEYS.SENTENCES]: sentences }, () => {
+        sendResponse({ method: "removeWordSentencesResult", word: msg.word });
+      });
+    });
+    return true;
+  }
+
   // 按 id 删除例句
   if (msg.method === "removeSentence") {
     chrome.storage.local.get(STORAGE_KEYS.SENTENCES, (data) => {

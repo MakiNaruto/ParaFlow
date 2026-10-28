@@ -1,6 +1,6 @@
 // ===== 例句管理页 =====
-// 仅展示拥有例句的单词，支持删除单词 / 删除例句。
-import { escapeHtml, formatUrl } from "./shared/dom.js";
+// 仅展示拥有例句的单词，支持按单词批量删除或单条删除例句。
+import { formatUrl } from "./shared/dom.js";
 import { STORAGE_KEYS } from "./shared/constants.js";
 
 let latestLoadId = 0;
@@ -26,7 +26,6 @@ function loadData() {
     loading.style.display = 'none';
 
     if (response && response.method === 'getAllWordsAndSentencesResult') {
-      const wordbook = response.wordbook || {};
       const sentences = response.sentences || [];
 
       // Group sentences by word
@@ -51,7 +50,6 @@ function loadData() {
 
       // Render each word
       words.forEach(function (word) {
-        const inWordbook = !!wordbook[word];
         const wordSentences = sentencesByWord[word] || [];
         const wordDiv = document.createElement('div');
         wordDiv.className = 'word-card';
@@ -71,16 +69,16 @@ function loadData() {
         wordHeader.appendChild(wordTitle);
         wordHeader.appendChild(wordCount);
 
-        if (inWordbook) {
-          const deleteWordBtn = document.createElement('button');
-          deleteWordBtn.className = 'delete-btn delete-word-btn';
-          deleteWordBtn.innerHTML = '删除单词';
-          deleteWordBtn.title = '从单词本删除';
-          deleteWordBtn.addEventListener('click', function () {
-            deleteWord(word);
-          });
-          wordHeader.appendChild(deleteWordBtn);
-        }
+        const deleteAllBtn = document.createElement('button');
+        deleteAllBtn.className = 'delete-btn delete-word-btn';
+        deleteAllBtn.textContent = '删除所有例句';
+        deleteAllBtn.title = '删除该单词在所有网页收藏的例句，保留生词本中的单词';
+        deleteAllBtn.addEventListener('click', function () {
+          if (confirm('删除 ' + word + ' 在所有网页收藏的全部例句？')) {
+            deleteAllSentences(word, deleteAllBtn);
+          }
+        });
+        wordHeader.appendChild(deleteAllBtn);
 
         wordDiv.appendChild(wordHeader);
 
@@ -119,7 +117,7 @@ function loadData() {
             deleteSentenceBtn.innerHTML = '删除';
             deleteSentenceBtn.title = '删除此例句';
             deleteSentenceBtn.addEventListener('click', function () {
-              deleteSentence(s.id, word);
+              deleteSentence(s.id, deleteSentenceBtn);
             });
 
             sentenceItem.appendChild(sentenceText);
@@ -137,17 +135,16 @@ function loadData() {
   });
 }
 
-// --- Delete Word ---
-function deleteWord(word) {
-  const btn = event.target;
+// --- Delete all sentences for a word ---
+function deleteAllSentences(word, btn) {
   btn.innerHTML = '处理中…';
 
   chrome.runtime.sendMessage({
     source: 'langeasyManage',
-    method: 'removeWord',
+    method: 'removeWordSentences',
     word: word
   }, function (response) {
-    if (response && response.method === 'removeWordResult') {
+    if (response && response.method === 'removeWordSentencesResult') {
       // Reload the entire list
       loadData();
     }
@@ -155,8 +152,7 @@ function deleteWord(word) {
 }
 
 // --- Delete Sentence ---
-function deleteSentence(sentenceId, word) {
-  const btn = event.target;
+function deleteSentence(sentenceId, btn) {
   btn.innerHTML = '处理中…';
 
   chrome.runtime.sendMessage({
@@ -175,7 +171,7 @@ function deleteSentence(sentenceId, word) {
 document.addEventListener('DOMContentLoaded', function () {
   chrome.storage.onChanged.addListener(function (changes, areaName) {
     if (areaName === 'local' &&
-        (changes[STORAGE_KEYS.SENTENCES] || changes[STORAGE_KEYS.WORDBOOK])) {
+        changes[STORAGE_KEYS.SENTENCES]) {
       loadData();
     }
   });

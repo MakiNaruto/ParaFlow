@@ -174,11 +174,23 @@
 
   // --- Underline Restoration ---
   let underlineApplied = false;
+  let underlineVersion = 0;
+
+  function updateUnderlines(sentences) {
+    document.querySelectorAll('.bbdc-underline-word').forEach(function (el) {
+      el.replaceWith(...el.childNodes);
+    });
+    document.body.normalize();
+    sentences.filter(s => s.url === window.location.href).forEach(s => {
+      highlightWordInSentence(s.word, s.text);
+    });
+  }
 
   function restoreUnderlines() {
     if (underlineApplied) return; // Already applied
     underlineApplied = true; // Set immediately to prevent duplicate calls
     const currentUrl = window.location.href;
+    const version = ++underlineVersion;
 
     try {
       chrome.runtime.sendMessage({
@@ -190,13 +202,8 @@
           console.warn('restoreUnderlines: sendMessage error', chrome.runtime.lastError);
           return;
         }
-        if (response && response.method === 'getSentencesByUrlResult') {
-          const sentences = response.sentences || [];
-          if (sentences.length === 0) return;
-
-          sentences.forEach(s => {
-            highlightWordInSentence(s.word, s.text);
-          });
+        if (version === underlineVersion && response && response.method === 'getSentencesByUrlResult') {
+          updateUnderlines(response.sentences || []);
         }
       });
     } catch (e) {
@@ -207,68 +214,43 @@
 
   function highlightWordInSentence(word, sentenceText) {
     if (!sentenceText || !word) return;
-
-    // Try to find the sentence text in the DOM
-    const treeWalker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode: function (node) {
-          // Skip script and style tags
-          if (node.parentElement &&
-            (node.parentElement.tagName === 'SCRIPT' ||
-              node.parentElement.tagName === 'STYLE' ||
-              node.parentElement.tagName === 'IFRAME' ||
-              node.parentElement.closest('.bbdc-underline-word'))) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          return NodeFilter.FILTER_ACCEPT;
-        }
+    // Match across inline elements and whitespace, retaining offsets into text nodes.
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        return node.parentElement?.closest('script, style, iframe, textarea, input, [contenteditable], #yddWrapper, #langeasyMiniIcon')
+          ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
       }
-    );
-
-    const textNodes = [];
+    });
+    const nodes = [];
+    let text = '';
     let node;
-    while ((node = treeWalker.nextNode())) {
-      textNodes.push(node);
+    while ((node = walker.nextNode())) {
+      nodes.push({ node, start: text.length });
+      text += node.textContent;
     }
-
-    for (const textNode of textNodes) {
-      const text = textNode.textContent;
-      // Check if this text node contains the sentence (or is part of it)
-      if (text.includes(sentenceText) || sentenceText.includes(text.trim())) {
-        // Try to find and highlight just the word within this sentence
-        const wordIndex = text.indexOf(word);
-        if (wordIndex === -1) continue;
-
-        // Only highlight if the word appears within the sentence context
-        const sentenceIndex = text.indexOf(sentenceText);
-        if (sentenceIndex === -1) continue;
-
-        // Word is within the sentence - highlight it
-        const wordStart = text.indexOf(word, sentenceIndex);
-        if (wordStart === -1 || wordStart > sentenceIndex + sentenceText.length) continue;
-
-        const range = document.createRange();
-        range.setStart(textNode, wordStart);
-        range.setEnd(textNode, wordStart + word.length);
-
-        const span = document.createElement('span');
-        span.className = 'bbdc-underline-word';
-        span.dataset.word = word;
-        span.dataset.url = window.location.href;
-        span.dataset.sentence = sentenceText;
-
-        try {
-          range.surroundContents(span);
-        } catch (e) {
-          // If surroundContents fails (partial node selection), skip
-          continue;
-        }
-
-        // Only highlight one occurrence per sentence to avoid over-highlighting
-        break;
-      }
+    const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const sentencePattern = sentenceText.trim().split(/\s+/).map(escapeRegex).join('\\s+');
+    const sentenceMatch = new RegExp(sentencePattern).exec(text);
+    if (!sentenceMatch) return;
+    const wordMatch = new RegExp('\\b' + escapeRegex(word) + '\\b', 'i').exec(sentenceMatch[0]);
+    if (!wordMatch) return;
+    const start = sentenceMatch.index + wordMatch.index;
+    const end = start + wordMatch[0].length;
+    const first = nodes.find(entry => entry.start <= start && entry.start + entry.node.length > start);
+    const last = nodes.find(entry => entry.start < end && entry.start + entry.node.length >= end);
+    if (!first || !last || first.node.parentElement.closest('.bbdc-underline-word')) return;
+    const range = document.createRange();
+    range.setStart(first.node, start - first.start);
+    range.setEnd(last.node, end - last.start);
+    const span = document.createElement('span');
+    span.className = 'bbdc-underline-word';
+    span.dataset.word = word;
+    span.dataset.url = window.location.href;
+    span.dataset.sentence = sentenceText;
+    try {
+      range.surroundContents(span);
+    } catch (e) {
+      // Leave page markup intact if the word crosses incompatible elements.
     }
   }
 
@@ -527,6 +509,12 @@
   // Listen for settings changes from other contexts (popup/options)
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area !== 'local') return;
+    // Storage key matches STORAGE_KEYS.SENTENCES in shared/constants.js.
+    if (changes.bbdc_sentences) {
+      ++underlineVersion;
+      underlineApplied = true;
+      updateUnderlines(changes.bbdc_sentences.newValue || []);
+    }
     const relevantKeys = [LS_KEYS.GET_WORD, LS_KEYS.MODIFIER_ENABLED, LS_KEYS.MINI_MODE, LS_KEYS.MODIFIER_KEY];
     const needsRefresh = relevantKeys.some(function (k) { return changes[k]; });
     if (needsRefresh) {
@@ -654,20 +642,6 @@
         const top = wrapper.getBoundingClientRect().top;
         wrapper.style.top = Math.max(margin, Math.min(top, window.innerHeight - visibleHeight - margin)) + 'px';
       }
-    } else if (methodName === 'removeUnderline' && word) {
-      // Remove all underline spans for the deleted word
-      const selectors = document.querySelectorAll('.bbdc-underline-word');
-      selectors.forEach(function (el) {
-        if (el.dataset.word === word) {
-          const parent = el.parentNode;
-          while (el.firstChild) {
-            parent.insertBefore(el.firstChild, el);
-          }
-          parent.removeChild(el);
-        }
-      });
-      // Merge adjacent text nodes after removing spans
-      document.body.normalize();
     }
   }, false);
 

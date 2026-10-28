@@ -125,3 +125,5 @@ body { overflow:visible; }
 #storedSentencesSection .sentence-text { font-style:normal; line-height:1.7; color:var(--ink); }
 #storedSentencesSection .sentence-url a { color:var(--muted); }
 #langeasyTip { background:var(--tint); color:var(--accent); border:0; border-radius:6px; padding:6px 8px; }
+
+#wordBtn, #sentenceBtn { width:auto; min-width:29px; padding:0 8px; font-size:12px; white-space:nowrap; }
