@@ -1,0 +1,38 @@
+{
+   "action": {
+      "default_icon": {
+         "48": "images/icon_48.png"
+      },
+      "default_title": "段译随行"
+   },
+   "side_panel": {
+      "default_path": "popup.html"
+   },
+   "minimum_chrome_version": "116",
+   "background": {
+      "service_worker": "background.js",
+      "type": "module"
+   },
+   "content_scripts": [ {
+      "js": [ "js/content/lookup.js", "js/content/translate.js" ],
+      "matches": [ "\u003Call_urls>" ]
+   } ],
+   "description": "段译随行：支持段落内联翻译、划词查词及登录不背单词后添加生词，提供多种翻译源。",
+   "icons": {
+      "128": "images/icon_128.png",
+      "19": "images/icon_19.png",
+      "48": "images/icon_48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz2ctgNKrZNXkck6E4NGjKejv/HWMiEOxOovAoV+LjI09qAEhksxre7vzhiAl+TrDDqERpw2ArDrTy39JVuvmk8XUaap/GrmwtL+wmGD/7ns6kDv5mM1pdHlhZ+aC5R7e5NXZIdYjY0wGrksUWx4rzTTKRMlE3B8wN8hzUCAM+16yRfpz8b/p5FowEP5WULYURF0a26lrOQWfWO7NTDv8ZEAyQEJmsaps0Y/5Qj50O/9tugT4rJ+7+KZ3skRLAm1QpWFIlyWjL3IscrM0O1+RMCwmFC+eJ8qz5SVn7I4N8vTG3xRxYnZmzZNjyfyUaMA17ukf3mq1kaVWGcxLAEruDwIDAQAB",
+   "manifest_version": 3,
+   "name": "段译随行",
+   "options_page": "options.html",
+   "permissions": [ "storage", "contextMenus", "activeTab", "sidePanel" ],
+   "host_permissions": [ "*://bbdc.cn/*", "*://*.bbdc.cn/*", "*://luna-ai.youdao.com/*", "<all_urls>" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.3.0",
+   "web_accessible_resources": [ {
+      "matches": [ "\u003Call_urls>" ],
+      "resources": [ "lookup.html", "js/lookup.js", "sentences.html", "js/sentences.js", "css/sentences.css", "images/icon_128.png", "vendor/index-23634095.js", "vendor/_commonjsHelpers-7a77ea84.js", "vendor/shim-94e1c008.js", "vendor/index-752c5480.js" ]
+   } ]
+}

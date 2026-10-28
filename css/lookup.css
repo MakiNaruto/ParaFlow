@@ -1,0 +1,127 @@
+body,html{height:100%;margin:0;padding:0}body{overflow:hidden}#yddWrapper{min-width:250px;max-width:400px;color:#252525;z-index:10001;text-align:left;font-family:Arial,Helvetica,sans-serif}#yddWrapper a{text-decoration:none;color:#50799b;font-family:Arial,Helvetica,sans-serif}#langeasyTip{color:#8a6d3b;background-color:#fcf8e3;border-radius:2px;border:1px solid #faebcc;padding:2px 5px;margin-bottom:4px;display:none}#yddWrapper table,#yddWrapper td,#yddWrapper tr{background:0 0}#yddWrapper table,#yddWrapper td{border:none;padding:2px 0;font-family:Arial,Helvetica,sans-serif}#yddWrapper a:hover{color:#1273c4}#langeasyTitle{margin:0;padding:0;line-height:26px;height:24px;background:#e2f0fb;border-bottom:1px solid #d8e3ec;color:#50799b;font-size:12px;padding:0 10px}#langeasyWord{font-size:18px;padding-left:2px;color:#1273c4}#langeasyDefinition{margin-top:0;font-size:1em;line-height:1.5;padding:10px;position:relative}#langeasyContainer{background:#fff;display:block;position:relative;width:100%;box-sizing:border-box;padding-top:0;font-size:12px;border:1px solid #4b7598;box-shadow:2px 2px 5px rgba(0,0,0,.2)}#langeasyTitle a{float:left}#langeasyContainer .icon_logo{width:18px;height:18px;margin-top:3px;background:url(/images/icon_48.png?__inline) no-repeat;background-size:100%;margin-right:6px}.langeasyline{margin:0;padding:0}#langeasyDefinition td{vertical-align:top;text-align:left;font-size:12px;line-height:20px}#langeasyDefinition span{vertical-align:middle;float:left}#langeasyDefinition p{margin:0;padding:0;padding-bottom:5px}#langeasyDefinition .langeasy_icon_audio{background:url(/images/audio.png?__inline) no-repeat;width:22px;height:19px;cursor:pointer;transition:filter .2s ease}#langeasyDefinition .langeasy_icon_audio:hover,#langeasyDefinition .langeasy_icon_audio.playing{filter:invert(.4) sepia(1) saturate(6) hue-rotate(180deg) brightness(1.1)}#alreadyAdd,#alreadyRemoved,#langeasyAddNeword,#langeasyAlreadyNewWord,#langeasyLogin{display:none;position:absolute;right:10px;font-size:11px}#langeasyAlreadyNewWord{color:#999}#yddWrapper #alreadyAdd{color:red}
+#yddWrapper #alreadyRemoved{color:red}
+
+/* Word action row - word + buttons side by side */
+#wordActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+#actionButtons {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+  user-select: none;
+  border: 1px solid transparent;
+}
+.action-add {
+  background: #e8f5e9;
+  border-color: #c8e6c9;
+  color: #2e7d32;
+}
+.action-add:hover {
+  background: #c8e6c9;
+  border-color: #a5d6a7;
+}
+.action-delete {
+  background: #fbe9e7;
+  border-color: #ffccbc;
+  color: #c62828;
+}
+.action-delete:hover {
+  background: #ffccbc;
+  border-color: #ffab91;
+}
+.action-disabled {
+  background: #eeeeee;
+  border-color: #cccccc;
+  color: #999999;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.action-disabled:hover {
+  background: #eeeeee;
+  border-color: #cccccc;
+}
+
+/* Stored sentences section */
+.section-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 10px 0 6px 0;
+}
+.sentences-header {
+  font-size: 12px;
+  color: #50799b;
+  font-weight: bold;
+  margin-bottom: 6px;
+  padding: 0;
+}
+#storedSentencesList {
+  /* Grow with the definition; the iframe handles viewport overflow. */
+}
+#storedSentencesSection .sentence-item {
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  background: #f5f8fc;
+  border-radius: 3px;
+  border-left: 3px solid #50799b;
+}
+#storedSentencesSection .sentence-text {
+  font-size: 12px;
+  color: #333;
+  line-height: 1.4;
+  font-style: italic;
+}
+#storedSentencesSection .sentence-url {
+  font-size: 11px;
+  margin-top: 2px;
+}
+#storedSentencesSection .sentence-url a {
+  color: #999;
+  text-decoration: none;
+}
+#storedSentencesSection .sentence-url a:hover {
+  color: #50799b;
+  text-decoration: underline;
+}
+/* Reading palette; the iframe keeps these styles isolated from the host page. */
+html, body { background:transparent; height:auto; }
+html { overflow-y:auto; }
+body { overflow:visible; }
+#yddWrapper { min-width:250px; max-width:400px; color:var(--ink); font-family:inherit; }
+#yddWrapper a { font-family:inherit; color:var(--accent); }
+#langeasyContainer { background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:0 8px 28px #302e2b14; overflow:hidden; font-size:13px; }
+#langeasyTitle { background:var(--canvas); border-bottom:1px solid var(--line); color:var(--muted); font-size:11px; height:35px; line-height:34px; padding:0 14px; }
+#langeasyTitle a { color:var(--muted); }
+#langeasyContainer .icon_logo { margin-top:8px; }
+#langeasyDefinition { padding:14px; line-height:1.7; }
+#langeasyWord { color:var(--ink); font-size:23px; font-weight:600; letter-spacing:-.5px; overflow-wrap:anywhere; min-width:0; float:none; }
+#wordActionRow { gap:10px; margin-bottom:10px; }
+#langeasyDefinition td { font-size:12px; padding:4px 0; line-height:1.7; }
+#langeasyDefinition td:first-child { color:var(--muted); white-space:nowrap; }
+#langeasyDefinition .langeasy_icon_audio { border-radius:5px; margin-left:4px; }
+#langeasyDefinition .langeasy_icon_audio:hover { background-color:var(--tint); filter:none; }
+.action-btn { width:29px; height:29px; border-radius:8px; }
+.action-add { color:var(--accent); background:var(--tint); border-color:transparent; }
+.action-add:hover { background:#ead8ca; border-color:#d8b8a5; }
+.action-delete { color:var(--muted); background:var(--hover); border-color:transparent; }
+.action-delete:hover { color:var(--danger); background:#f8eae5; border-color:transparent; }
+.action-disabled, .action-disabled:hover { color:var(--muted); background:var(--hover); border-color:var(--line); }
+.section-divider { border-color:var(--line); margin:14px 0 10px; }
+#storedSentencesSection .sentence-item { background:var(--canvas); border-left:2px solid #c59076; padding:8px 10px; border-radius:5px; }
+#storedSentencesSection .sentence-text { font-style:normal; line-height:1.7; color:var(--ink); }
+#storedSentencesSection .sentence-url a { color:var(--muted); }
+#langeasyTip { background:var(--tint); color:var(--accent); border:0; border-radius:6px; padding:6px 8px; }

@@ -1,0 +1,36 @@
+:root {
+  color-scheme: light;
+  --canvas: #f8f7f4;
+  --surface: #fffefa;
+  --ink: #302e2b;
+  --muted: #77716a;
+  --line: #e6e2da;
+  --accent: #a34f36;
+  --accent-hover: #873e29;
+  --tint: #f3e9e1;
+  --hover: #f0ede7;
+  --danger: #ad3f35;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--canvas);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: inherit; line-height: 1.6; color: var(--ink); }
+button, input, select, textarea { font: inherit; }
+button, select, summary { cursor: pointer; }
+button { transition: background .16s, border-color .16s, box-shadow .16s; }
+button:active { transform: translateY(1px); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; text-underline-offset: 3px; }
+button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-visible,
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px;
+}
+input, textarea, select { accent-color: var(--accent); }
+button:disabled { opacity: .55; cursor: wait; transform: none; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
+::selection { background: #e9cdbb; color: #302e2b; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

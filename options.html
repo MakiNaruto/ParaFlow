@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>设置 · 段译随行</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/options.css" />
+  <script type="module" src="js/options.js"></script>
+</head>
+<body>
+  <main class="settings-page">
+    <nav class="page-nav"><a href="popup.html">段译随行</a><a href="sentences.html">单词与例句 ↗</a></nav>
+    <header><h1>阅读偏好</h1><p class="page-description">让翻译适应你的阅读习惯。</p></header>
+    <section aria-labelledby="lookup-heading">
+      <h2 id="lookup-heading">划词查词</h2>
+      <div class="settings-card">
+        <label class="setting-row" for="langeasyIsGetWord"><span><strong>划词查词</strong><small>选中单词，查看释义与发音。</small></span><input class="switch" type="checkbox" id="langeasyIsGetWord" /></label>
+        <label class="setting-row" for="langeasyIsMiniMode"><span><strong>先显示查词图标</strong><small>点击图标后再展开释义，减少阅读打扰。</small></span><input class="switch" type="checkbox" id="langeasyIsMiniMode" /></label>
+      </div>
+    </section>
+    <section aria-labelledby="trigger-heading">
+      <h2 id="trigger-heading">触发方式</h2>
+      <div class="settings-card">
+        <label class="setting-row" for="langeasyIsModifierEnabled"><span><strong>启用触发键</strong><small>按住指定按键，再指向单词。</small></span><input class="switch" type="checkbox" id="langeasyIsModifierEnabled" /></label>
+        <label class="setting-row" for="langeasyModifierKey"><span><strong>触发键</strong></span><select id="langeasyModifierKey"><option value="none">无（直接指词）</option><option value="ctrl">Ctrl</option><option value="alt">Alt</option><option value="shift">Shift</option><option value="meta">⌘ / Win</option></select></label>
+      </div>
+    </section>
+    <section class="sync-section" aria-labelledby="sync-heading">
+      <h2 id="sync-heading">云端同步</h2>
+      <div class="settings-card sync-card"><strong>在浏览器之间同步偏好</strong><p>使用 Chrome 同步保存设置，API Key 等凭据仅保留在本地。</p><div class="sync-actions"><button id="syncToCloudBtn" class="sync-btn primary">同步到云端</button><button id="pullFromCloudBtn" class="sync-btn">应用云端配置</button></div><p id="syncStatus" class="sync-status" role="status" aria-live="polite"></p></div>
+    </section>
+    <footer>偏好设置会自动保存。</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <title>段译随行</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="css/popup.css" />
+    <script type="module" src="js/popup/popup.js"></script>
+  </head>
+
+  <body>
+    <p id="header">
+      <span id="logo"><img src="images/icon_48.png" width="19" height="19" /><span>段译随行</span></span
+      ><span id="status"></span>
+    </p>
+    <p class="account-help">随手查词，专注阅读。</p>
+    <hr />
+    <div id="search_area">
+      <input autofocus="autofocus" id="input" type="text" name="query" placeholder="输入英文单词…" aria-label="查询英文单词" autocomplete="off" spellcheck="false" /><button id="search">查询</button><span id="jump"></span>
+    </div>
+    <div id="tips" role="status" aria-live="polite"></div>
+    <div id="definition" style="display: none">
+      <span id="word"></span>
+      <table>
+        <tr class="pronunciation-row">
+          <td width="40">英音：</td>
+          <td><div class="pronunciation-value"><span id="uk_pron"></span><img src="images/audio.png" style="display: none" type="UK" id="uk_audio" /></div></td>
+        </tr>
+        <tr class="pronunciation-row">
+          <td>美音：</td>
+          <td><div class="pronunciation-value"><span id="us_pron"></span><img src="images/audio.png" style="display: none" type="US" id="us_audio" /></div></td>
+        </tr>
+        <tr>
+          <td>词义：</td>
+          <td>
+            <div id="interpret"></div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <hr />
+    <div id="footer">
+      <div id="translate_settings">
+        <button id="lang_row" aria-expanded="false" aria-controls="lang_panel" class="lang-row">
+          <span>翻译为：</span>
+          <span class="lang-value">
+            <span id="lang_current_label">中文</span>
+            <svg class="lang-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2.64645 4.14645C2.45118 4.34171 2.45118 4.65829 2.64645 4.85355L5.64645 7.85355C5.84171 8.04882 6.15829 8.04882 6.35355 7.85355L9.35355 4.85355C9.54882 4.65829 9.54882 4.34171 9.35355 4.14645C9.15829 3.95118 8.84171 3.95118 8.64645 4.14645L6 6.79289L3.35355 4.14645C3.15829 3.95118 2.84171 3.95118 2.64645 4.14645Z" fill="#50799b"/></svg>
+          </span>
+        </button>
+        <div id="lang_panel" class="lang-panel">
+          <div id="lang_list" class="lang-list"></div>
+        </div>
+        <!-- Vendor selector -->
+        <button id="vendor_row" aria-expanded="false" aria-controls="vendor_panel" class="lang-row vendor-row">
+          <span>翻译源：</span>
+          <span class="lang-value">
+            <span id="vendor_current_label">有道翻译</span>
+            <svg class="lang-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2.64645 4.14645C2.45118 4.34171 2.45118 4.65829 2.64645 4.85355L5.64645 7.85355C5.84171 8.04882 6.15829 8.04882 6.35355 7.85355L9.35355 4.85355C9.54882 4.65829 9.54882 4.34171 9.35355 4.14645C9.15829 3.95118 8.84171 3.95118 8.64645 4.14645L6 6.79289L3.35355 4.14645C3.15829 3.95118 2.84171 3.95118 2.64645 4.14645Z" fill="#50799b"/></svg>
+          </span>
+        </button>
+        <div id="vendor_panel" class="lang-panel vendor-panel">
+          <div id="vendor_list" class="lang-list"></div>
+          <button id="add_custom_vendor" class="add-vendor-btn">＋ 添加翻译源</button>
+        </div>
+      </div>
+      <span id="about">
+        <p>
+          <a href="sentences.html" target="_blank">单词与例句</a>
+          <a href="options.html" target="_blank">设置</a>
+        </p>
+      </span>
+    </div>
+    <!-- Vendor Add/Edit Modal -->
+    <div id="vendor_modal" class="vendor-modal">
+    <div class="vendor-modal-content">
+      <div class="vendor-modal-header">
+        <span id="vendor_modal_title">添加翻译源</span>
+        <button type="button" id="vendor_modal_close" class="vendor-modal-close" aria-label="关闭翻译源配置">&times;</button>
+      </div>
+      <div class="vendor-modal-body">
+        <!-- Type selector -->
+        <div class="vendor-type-selector">
+          <div class="vendor-type-category" id="category_traditional">
+            <button type="button" class="vendor-type-header" id="category_traditional_header" aria-expanded="false">
+              <span class="vendor-type-arrow">▶</span>
+              <span>传统机器翻译</span>
+            </button>
+            <div class="vendor-type-options" id="traditional_options" style="display: none;">
+              <label class="vendor-type-option" data-type="alibaba">
+                <input type="radio" name="vendor_type" value="alibaba" />
+                <span>阿里翻译</span>
+              </label>
+              <label class="vendor-type-option" data-type="baidu">
+                <input type="radio" name="vendor_type" value="baidu" />
+                <span>百度翻译</span>
+              </label>
+            </div>
+          </div>
+          <div class="vendor-type-category" id="category_llm">
+            <button type="button" class="vendor-type-header" id="category_llm_header" aria-expanded="false">
+              <span class="vendor-type-arrow">▶</span>
+              <span>大模型翻译</span>
+            </button>
+            <div class="vendor-type-options" id="llm_options" style="display: none;">
+              <div class="vendor-modal-field" style="margin-bottom: 4px;">
+                <label>协议</label>
+                <div class="llm-protocol-toggle" id="llm_protocol_btns">
+                  <button type="button" class="llm-protocol-btn" data-protocol="openai">OpenAI 兼容</button>
+                  <button type="button" class="llm-protocol-btn" data-protocol="anthropic">Anthropic</button>
+                </div>
+              </div>
+              <div class="vendor-modal-hint" id="llm_protocol_hint"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Name field -->
+        <div class="vendor-modal-field" id="vendor_name_field" style="display: none;">
+          <label for="vendor_modal_name">展示名称</label>
+          <input type="text" id="vendor_modal_name" placeholder="如：我的翻译服务" />
+        </div>
+        <!-- Credential fields (dynamic, for traditional MT) -->
+        <div id="vendor_credential_fields" style="display: none;"></div>
+        <!-- LLM fields (static, 大模型翻译) -->
+        <div id="llm_fields" style="display: none;">
+          <div class="vendor-modal-field">
+            <label for="llm_url">API 接口地址 <span style="color:#c62828;font-weight:bold;">*</span></label>
+            <input type="text" id="llm_url" placeholder="" />
+            <div class="vendor-modal-hint" id="llm_url_hint"></div>
+          </div>
+          <div class="vendor-modal-field">
+            <label for="llm_api_key">API Key <span style="color:#c62828;font-weight:bold;">*</span></label>
+            <input type="password" id="llm_api_key" placeholder="sk-..." autocomplete="off" />
+          </div>
+          <div class="vendor-modal-field">
+            <label for="llm_model">模型名称 <span style="color:#c62828;font-weight:bold;">*</span></label>
+            <input type="text" id="llm_model" placeholder="" />
+          </div>
+          <details class="vendor-modal-field prompt-details">
+            <summary>高级设置 · 翻译提示词</summary>
+            <label for="llm_prompt">系统提示词</label>
+            <textarea id="llm_prompt" rows="6" placeholder="留空则使用默认翻译提示词"></textarea>
+            <div class="llm-prompt-actions">
+              <button type="button" id="llm_prompt_reset">恢复默认提示词</button>
+            </div>
+            <div class="vendor-modal-hint">
+              大模型翻译指令，可自由修改。可用 {targetLang} / {targetLangNative} 表示目标语言（英文名/中文名），翻译时会自动替换。请保留 {{XT_n}} 占位符与换行。
+            </div>
+          </details>
+        </div>
+      </div>
+      <div class="vendor-modal-footer">
+        <button id="vendor_modal_cancel" class="modal-btn modal-btn-cancel">取消</button>
+        <button id="vendor_modal_save" class="modal-btn modal-btn-save">保存</button>
+      </div>
+    </div>
+  </div>
+  </body>
+</html>

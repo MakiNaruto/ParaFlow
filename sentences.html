@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/theme.css" />
+    <title>单词与例句 · 段译随行</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="css/sentences.css" />
+    <script type="module" src="js/sentences.js"></script>
+  </head>
+
+  <body>
+    <div id="header">
+      <div><a class="back-link" href="options.html">段译随行 / 阅读收藏</a><h1 class="title">单词与例句</h1><p class="page-description">把阅读中的新发现，留给下一次重温。</p></div>
+      <span id="stats" role="status"></span>
+    </div>
+    <hr />
+
+    <div id="content">
+      <div id="loading" role="status">加载中...</div>
+      <div id="wordList"></div>
+      <div id="emptyState" style="display:none;">
+        <p>你的阅读收藏，从这里开始。</p>
+        <p>在网页中查词，收藏单词或例句后即可在这里查看。</p>
+      </div>
+    </div>
+
+    <hr />
+  </body>
+</html>
