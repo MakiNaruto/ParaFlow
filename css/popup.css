@@ -18,7 +18,9 @@ body > hr:first-of-type { display:none; }
 #search { border:1px solid var(--accent); background:var(--accent); color:white; border-radius:10px; height:44px; padding:0 15px; flex-shrink:0; }
 #search:hover { background:var(--accent-hover); }
 #jump:empty { display:none; }
-#jump { position:absolute; right:0; top:100%; font-size:11px; }
+#jump { display:flex; flex-shrink:0; }
+.definition-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.definition-heading #word { min-width:0; }
 #tips { color:var(--muted); font-size:12px; line-height:1.6; }
 #tips p { margin:10px 0 0; }
 #tips:empty { display:none; }
@@ -68,11 +70,13 @@ ol { margin:0; padding-left:20px; }
 #about p { display:flex; justify-content:space-between; align-items:center; margin:17px 0 0; font-size:12px; }
 #about a { color:var(--muted); white-space:nowrap; }
 #about span { display:none; }
-.word-action-btn { display:inline-flex; align-items:center; gap:4px; border:1px solid var(--line); padding:4px 9px; border-radius:7px; font-size:12px; cursor:pointer; user-select:none; }
-.action-add { color:var(--accent); background:var(--tint); }
-.action-delete { color:var(--muted); background:var(--hover); }
-.action-add:hover, .action-delete:hover { border-color:var(--accent); }
-.action-label { font-size:11px; }
+.word-action-btn { display:inline-flex; align-items:center; gap:5px; border:1px solid transparent; padding:6px 8px; border-radius:7px; font:inherit; font-size:12px; line-height:1.3; cursor:pointer; user-select:none; white-space:nowrap; }
+.word-action-btn svg { width:15px; height:15px; flex-shrink:0; }
+.word-action-btn.action-add { color:var(--muted); background:transparent; }
+.word-action-btn.action-delete { color:var(--accent); background:transparent; }
+.word-action-btn:hover { color:var(--accent); background:var(--tint); }
+.word-action-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.word-action-btn:disabled { cursor:default; opacity:.65; }
 .stored-sentences-section { margin-top:16px; }
 .sentences-header { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:8px; }
 .stored-sentences-section .sentence-item { padding:9px 11px; background:var(--hover); border-left:2px solid #c59076; border-radius:5px; margin-bottom:6px; }

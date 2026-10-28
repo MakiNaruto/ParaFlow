@@ -1,5 +1,5 @@
 // ===== 设置页 =====
-// 划词查词 / 触发键 / 图标模式开关。
+// 划词查词 / 触发键 / 图标模式 / 查词兜底开关。
 // storage key 与默认触发键来自 shared/constants.js。
 import { LS_KEYS as STORAGE_KEYS, DEFAULT_MODIFIER_KEY } from "./shared/constants.js";
 

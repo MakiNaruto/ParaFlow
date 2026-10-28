@@ -1,7 +1,7 @@
 // ===== Popup Script (core) =====
 // 手动查词、登录态、单词本操作、语言选择器、发音。
 // 翻译源 UI（选择器 + 增删改弹窗）见 ./vendor-ui.js。
-import { HOST, AUDIO_CDN, TRANS_LANGS, TRANS_LANG_KEY, STORAGE_KEYS } from "../shared/constants.js";
+import { HOST, AUDIO_CDN, TRANS_LANGS, TRANS_LANG_KEY, STORAGE_KEYS, LS_KEYS } from "../shared/constants.js";
 import { escapeHtml, escapeQuotes, formatUrl } from "../shared/dom.js";
 import { sendMsg } from "../shared/messaging.js";
 import { initVendorSelector } from "./vendor-ui.js";
@@ -12,6 +12,7 @@ import { initVendorSelector } from "./vendor-ui.js";
   let info = '';
   let currentWord = '';
   let isLoggedIn = false;
+  let queryRequestId = 0;
 
   // --- Utility ---
   function inputFocusAuto() {
@@ -100,7 +101,7 @@ import { initVendorSelector } from "./vendor-ui.js";
     showTips('<span class="word">' + word + '</span> 没有找到。');
   }
 
-  async function querySuccess(data) {
+  async function querySuccess(data, requestId) {
     showTips('');
     const w = data.wordlist[0];
     info = w.interpret;
@@ -111,6 +112,8 @@ import { initVendorSelector } from "./vendor-ui.js";
     // Word
     document.getElementById('word').innerHTML = w.word;
     currentWord = w.word;
+
+    document.querySelectorAll('.pronunciation-row').forEach(row => { row.style.display = ''; });
 
     // Pronunciation
     document.getElementById('uk_pron').innerHTML = w.uk_pron;
@@ -138,6 +141,7 @@ import { initVendorSelector } from "./vendor-ui.js";
     // Check local storage for word status
     try {
       const wordData = await chrome.storage.local.get(STORAGE_KEYS.WORDBOOK);
+      if (requestId !== queryRequestId) return;
       const wordbook = wordData[STORAGE_KEYS.WORDBOOK] || {};
       const exists = !!wordbook[w.word];
 
@@ -146,26 +150,32 @@ import { initVendorSelector } from "./vendor-ui.js";
         const delBtn = createWordDeleteBtn(w.word);
         jumpArea.appendChild(delBtn);
 
-        // Load and display stored sentences
-        await displayStoredSentences(w.word);
       } else if (isLoggedIn) {
         // Show add button
         const addBtn = createWordAddBtn(w.word);
         jumpArea.appendChild(addBtn);
       }
+      // Saved sentences do not depend on wordbook membership.
+      await displayStoredSentences(w.word);
     } catch (e) {
       console.log('Error checking word status', e);
     }
   }
 
+  function wordBookmark(added) {
+    return '<svg viewBox="0 0 24 24" fill="' + (added ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4V4Z"/></svg>' +
+      '<span class="action-label">' + (added ? '已添加' : '添加单词') + '</span>';
+  }
+
   // --- Word Add/Delete Buttons ---
   function createWordAddBtn(word) {
-    const btn = document.createElement('span');
+    const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'word-action-btn action-add';
-    btn.innerHTML = '📕 <span class="action-label">添加</span>';
-    btn.title = '添加到单词本';
+    btn.innerHTML = wordBookmark(false);
+    btn.title = '添加到不背单词生词本';
     btn.addEventListener('click', async function () {
-      btn.innerHTML = '⏳';
+      btn.disabled = true;
       try {
         const response = await sendMsg({ source: 'langeasyPopup', method: 'addNewWord', word, info });
         if (!response || response.error) {
@@ -178,6 +188,7 @@ import { initVendorSelector } from "./vendor-ui.js";
           throw new Error('Unable to add word');
         }
 
+        if (currentWord !== word) return;
         // Refresh - show delete button
         const jumpArea = document.getElementById('jump');
         jumpArea.innerHTML = '';
@@ -186,39 +197,38 @@ import { initVendorSelector } from "./vendor-ui.js";
         await displayStoredSentences(word);
       } catch (e) {
         console.log('Error adding word', e);
-        btn.innerHTML = '📕 <span class="action-label">添加</span>';
+        btn.innerHTML = wordBookmark(false);
+      } finally {
+        btn.disabled = false;
       }
     });
     return btn;
   }
 
   function createWordDeleteBtn(word) {
-    const btn = document.createElement('span');
+    const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'word-action-btn action-delete';
-    btn.innerHTML = '🗑 <span class="action-label">删除</span>';
-    btn.title = '从单词本删除';
+    btn.innerHTML = wordBookmark(true);
+    btn.title = '从不背单词生词本删除';
+    btn.setAttribute('aria-label', '已添加，点击从生词本删除');
     btn.addEventListener('click', async function () {
-      btn.innerHTML = '⏳';
+      btn.disabled = true;
       try {
-        const data = await chrome.storage.local.get([STORAGE_KEYS.WORDBOOK, STORAGE_KEYS.SENTENCES]);
-        const wordbook = data[STORAGE_KEYS.WORDBOOK] || {};
-        const sentences = data[STORAGE_KEYS.SENTENCES] || [];
-        delete wordbook[word];
-        const remainingSentences = sentences.filter(function (s) { return s.word !== word; });
-        await chrome.storage.local.set({
-          [STORAGE_KEYS.WORDBOOK]: wordbook,
-          [STORAGE_KEYS.SENTENCES]: remainingSentences
-        });
+        const response = await sendMsg({ source: 'langeasyPopup', method: 'removeWord', word, info });
+        if (!response || response.error) throw new Error('无法删除单词');
+        if (currentWord !== word) return;
         // Refresh - show add button
         const jumpArea = document.getElementById('jump');
         jumpArea.innerHTML = '';
         if (isLoggedIn) jumpArea.appendChild(createWordAddBtn(word));
-        // Hide stored sentences
-        const sentencesDiv = document.getElementById('storedSentencesSection');
-        if (sentencesDiv) sentencesDiv.style.display = 'none';
+        // Removing a word leaves its saved sentences intact.
+        await displayStoredSentences(word);
       } catch (e) {
         console.log('Error removing word', e);
-        btn.innerHTML = '🗑 <span class="action-label">删除</span>';
+        btn.innerHTML = wordBookmark(true);
+      } finally {
+        btn.disabled = false;
       }
     });
     return btn;
@@ -239,6 +249,7 @@ import { initVendorSelector } from "./vendor-ui.js";
 
     try {
       const data = await chrome.storage.local.get(STORAGE_KEYS.SENTENCES);
+      if (currentWord !== word) return;
       const allSentences = data[STORAGE_KEYS.SENTENCES] || [];
       const wordSentences = allSentences.filter(function (s) { return s.word === word; });
 
@@ -270,23 +281,49 @@ import { initVendorSelector } from "./vendor-ui.js";
 
   // --- Query ---
   async function onQuery(word) {
-    // Account state is checked when the popup opens; dictionary queries do not change it.
-    word = transMark(word);
+    const requestId = ++queryRequestId;
+    currentWord = '';
     showTips('查询中...');
     clearArea('jump');
     clearArea('definition');
-
+    let data = null;
     try {
       const resp = await fetch('https://langeasy.com.cn/loadLexisList.action?strict=1&word=' + encodeURIComponent(word));
-      const data = await resp.json();
-      if (data && data.wordlist && data.wordlist.length > 0) {
-        await querySuccess(data);
-      } else {
-        queryFailed(word);
-      }
+      if (!resp.ok) throw new Error('词典请求失败');
+      data = await resp.json();
     } catch (e) {
       console.log('error', e);
+    }
+    if (requestId !== queryRequestId) return;
+    const entry = data?.wordlist?.find(w => w.word && typeof w.interpret === 'string' && w.interpret.trim());
+    if (entry) {
+      await querySuccess({ wordlist: [entry] }, requestId);
+      return;
+    }
+    try {
+      const settings = await chrome.storage.local.get(LS_KEYS.LOOKUP_FALLBACK);
+      if (requestId !== queryRequestId) return;
+      if (settings[LS_KEYS.LOOKUP_FALLBACK] === false) {
+        queryFailed(word);
+        return;
+      }
+      showTips('词典未查到结果，正在使用所选翻译源…');
+      const response = await sendMsg({ action: 'translate', text: word });
+      if (requestId !== queryRequestId) return;
+      if (!response?.ok || typeof response.translation !== 'string' || !response.translation.trim()) {
+        throw new Error(response?.error || '翻译接口未返回结果');
+      }
+      currentWord = word;
+      document.getElementById('word').textContent = word;
+      document.getElementById('interpret').textContent = response.translation;
+      document.querySelectorAll('.pronunciation-row').forEach(row => { row.style.display = 'none'; });
+      document.getElementById('definition').style.display = 'block';
+      showTips('所选翻译源的翻译结果');
+      await displayStoredSentences(word);
+    } catch (e) {
+      if (requestId !== queryRequestId) return;
       queryFailed(word);
+      document.getElementById('tips').textContent = '翻译失败：' + e.message;
     }
   }
 
@@ -423,5 +460,12 @@ import { initVendorSelector } from "./vendor-ui.js";
       renderList(current);
     });
   }
+
+  // Keep already-open sidebar results in sync with sentence collections.
+  chrome.storage.onChanged.addListener(function (changes, area) {
+    if (area === 'local' && changes[STORAGE_KEYS.SENTENCES] && currentWord) {
+      displayStoredSentences(currentWord);
+    }
+  });
 
 })();

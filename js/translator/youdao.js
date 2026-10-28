@@ -115,12 +115,19 @@ export async function youdaoTranslate(text, to = "zh-CHS", _from = "auto") {
   const data = {
     i: encodeURIComponent(text),
     to,
-    from: "auto",
+    from: _from,
     modelName: "llmLite",
   };
-  let result = await postTranslation(data, await getSecretKey()).catch(() => null);
-  if (!result || result.code !== 0) {
-    result = await postTranslation(data, await getSecretKey(true));
+  let secretKey = await getSecretKey();
+  let result = await postTranslation(data, secretKey).catch(() => null);
+  // Error 605 is a language-direction failure, not an expired signing key.
+  // Auto detection can fail on English identifiers such as PostgresSaver.
+  if (result?.code === 605 && data.from === "auto" && to !== "en" &&
+      /^[A-Za-z][A-Za-z0-9_'’-]*$/.test(text.trim())) {
+    result = await postTranslation({ ...data, from: "en" }, secretKey);
+  } else if (!result || (result.code !== 0 && result.code !== 605)) {
+    secretKey = await getSecretKey(true);
+    result = await postTranslation(data, secretKey);
   }
   if (result?.code !== 0) {
     throw new Error(result?.msg || `翻译失败: ${result?.code}`);

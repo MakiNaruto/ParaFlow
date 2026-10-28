@@ -17,11 +17,11 @@
     <p class="account-help">随手查词，专注阅读。</p>
     <hr />
     <div id="search_area">
-      <input autofocus="autofocus" id="input" type="text" name="query" placeholder="输入英文单词…" aria-label="查询英文单词" autocomplete="off" spellcheck="false" /><button id="search">查询</button><span id="jump"></span>
+      <input autofocus="autofocus" id="input" type="text" name="query" placeholder="输入英文单词…" aria-label="查询英文单词" autocomplete="off" spellcheck="false" /><button id="search">查询</button>
     </div>
     <div id="tips" role="status" aria-live="polite"></div>
     <div id="definition" style="display: none">
-      <span id="word"></span>
+      <div class="definition-heading"><span id="word"></span><span id="jump"></span></div>
       <table>
         <tr class="pronunciation-row">
           <td width="40">英音：</td>
@@ -67,7 +67,7 @@
       </div>
       <span id="about">
         <p>
-          <a href="sentences.html" target="_blank">单词与例句</a>
+          <a href="sentences.html" target="_blank">例句管理</a>
           <a href="options.html" target="_blank">设置</a>
         </p>
       </span>

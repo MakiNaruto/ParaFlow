@@ -334,11 +334,16 @@
       // 需显式委托 autoplay 权限，否则查词发音无法播放（popup 顶层页不受此限制）。
       iframe.setAttribute('allow', 'autoplay');
       iframe.style.border = 'none';
-      iframe.style.width = '300px';
+      const initialWidth = Math.max(1, Math.min(300, winW - 20));
+      iframe.style.width = initialWidth + 'px';
+      iframe.style.display = 'block';
 
       wrapper.id = 'yddWrapper';
       wrapper.style.position = 'fixed';
       wrapper.style.zIndex = '99999';
+      wrapper.style.width = initialWidth + 'px';
+      wrapper.style.minWidth = '0';
+      wrapper.style.maxWidth = 'none';
 
       // Use viewport-relative coordinates for fixed positioning.
       // pageX/Y are document coordinates; convert to viewport coordinates
@@ -349,7 +354,7 @@
       const clientX = pageX - scrollX;
       const clientY = pageY - scrollY;
 
-      const wrapperWidth = 300;
+      const wrapperWidth = initialWidth;
       const estimatedHeight = 150;
       const margin = 10;
 
@@ -629,7 +634,7 @@
 
   // Listen for messages from lookup iframe
   window.addEventListener('message', function (e) {
-    const { methodName, height, word } = e.data;
+    const { methodName, height, width } = e.data;
     if (methodName === 'langeasyLexisSetHeight') {
       const iframe = document.querySelector('#langeasyLexisIframe');
       if (iframe && e.source === iframe.contentWindow && Number.isFinite(height) && height > 0) {
@@ -639,6 +644,13 @@
         const visibleHeight = Math.min(height, availableHeight);
         iframe.style.height = visibleHeight + 'px';
         const wrapper = iframe.parentElement;
+        if (Number.isFinite(width) && width > 0) {
+          const visibleWidth = Math.max(1, Math.min(width, window.innerWidth - margin * 2));
+          iframe.style.width = visibleWidth + 'px';
+          wrapper.style.width = visibleWidth + 'px';
+          const left = wrapper.getBoundingClientRect().left;
+          wrapper.style.left = Math.max(margin, Math.min(left, window.innerWidth - visibleWidth - margin)) + 'px';
+        }
         const top = wrapper.getBoundingClientRect().top;
         wrapper.style.top = Math.max(margin, Math.min(top, window.innerHeight - visibleHeight - margin)) + 'px';
       }

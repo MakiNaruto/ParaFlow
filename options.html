@@ -10,7 +10,7 @@
 </head>
 <body>
   <main class="settings-page">
-    <nav class="page-nav"><a href="popup.html">段译随行</a><a href="sentences.html">单词与例句 ↗</a></nav>
+    <nav class="page-nav"><a href="popup.html">段译随行</a><a href="sentences.html">例句管理 ↗</a></nav>
     <header><h1>阅读偏好</h1><p class="page-description">让翻译适应你的阅读习惯。</p></header>
     <section aria-labelledby="lookup-heading">
       <h2 id="lookup-heading">划词查词</h2>
@@ -24,6 +24,12 @@
       <div class="settings-card">
         <label class="setting-row" for="langeasyIsModifierEnabled"><span><strong>启用触发键</strong><small>按住指定按键，再指向单词。</small></span><input class="switch" type="checkbox" id="langeasyIsModifierEnabled" /></label>
         <label class="setting-row" for="langeasyModifierKey"><span><strong>触发键</strong></span><select id="langeasyModifierKey"><option value="none">无（直接指词）</option><option value="ctrl">Ctrl</option><option value="alt">Alt</option><option value="shift">Shift</option><option value="meta">⌘ / Win</option></select></label>
+      </div>
+    </section>
+    <section aria-labelledby="fallback-heading">
+      <h2 id="fallback-heading">查词兜底</h2>
+      <div class="settings-card">
+        <label class="setting-row" for="langeasyLookupFallbackEnabled"><span><strong>查词失败后使用翻译源兜底</strong><small>词典未收录或查询失败时，使用当前选中的翻译源和目标语言翻译。关闭后不再尝试翻译。</small></span><input class="switch" type="checkbox" id="langeasyLookupFallbackEnabled" /></label>
       </div>
     </section>
     <footer>偏好设置会自动保存。</footer>

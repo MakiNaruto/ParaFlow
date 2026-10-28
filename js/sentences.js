@@ -74,7 +74,7 @@ function loadData() {
         deleteAllBtn.textContent = '删除所有例句';
         deleteAllBtn.title = '删除该单词在所有网页收藏的例句，保留生词本中的单词';
         deleteAllBtn.addEventListener('click', function () {
-          if (confirm('删除 ' + word + ' 在所有网页收藏的全部例句？')) {
+          if (confirm('删除 ' + word + ' 在所有网页收藏的全部 ' + wordSentences.length + ' 条例句？')) {
             deleteAllSentences(word, deleteAllBtn);
           }
         });

@@ -10,6 +10,8 @@
   let currentInfo = '';
   let wordExists = false;
   let isLoggedIn = false;
+  let hasDictionaryEntry = false;
+  let definitionRequestId = 0;
 
   // --- Build the lookup UI ---
   function buildUI(word, sentence, url, info) {
@@ -20,6 +22,7 @@
     startHeightObserver();
 
     isLoggedIn = false;
+    hasDictionaryEntry = false;
     currentWord = word;
     currentSentence = sentence || '';
     currentUrl = url || '';
@@ -29,8 +32,8 @@
       <div id="langeasyContainer">
         <!-- Word Header -->
         <div id="langeasyTitle">
-          <a href="https://bbdc.cn" class="icon_logo" target="_blank"></a>
-          <a href="https://bbdc.cn" target="_blank">段译随行</a>
+          <span class="icon_logo" aria-hidden="true"></span>
+          <span>段译随行</span>
         </div>
 
         <!-- Word Definition Area -->
@@ -41,7 +44,7 @@
           <div id="wordActionRow">
             <span id="langeasyWord">${word}</span>
             <span id="actionButtons">
-              <button id="wordBtn" class="action-btn" title="添加/删除单词" aria-label="收藏或移除单词"></button>
+              <button id="wordBtn" style="display:none;" class="action-btn" title="添加/删除单词" aria-label="收藏或移除单词"></button>
               <button id="sentenceBtn" class="action-btn" title="收藏当前单词所在的例句" aria-label="收藏当前单词所在的例句"></button>
             </span>
           </div>
@@ -221,41 +224,47 @@
     updateHeight();
   }
 
+  function bookmarkLabel(added, label) {
+    return '<svg viewBox="0 0 24 24" fill="' + (added ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4V4Z"/></svg><span>' + label + '</span>';
+  }
+
   // --- Update Word Button ---
   function updateWordBtn(exists) {
     const btn = document.getElementById('wordBtn');
     if (!btn) return;
-    btn.style.display = isLoggedIn ? '' : 'none';
+    btn.style.display = isLoggedIn && hasDictionaryEntry ? '' : 'none';
     if (!isLoggedIn) {
-      btn.textContent = '添加单词';
+      btn.innerHTML = bookmarkLabel(false, '添加单词');
       btn.className = 'action-btn action-disabled';
       btn.title = '请登录 bbdc.cn 后添加单词';
       return;
     }
     if (exists) {
-      btn.textContent = '删除单词';
+      btn.innerHTML = bookmarkLabel(true, '单词已添加');
       btn.className = 'action-btn action-delete';
       btn.title = '从不背单词生词本移除当前单词';
     } else {
-      btn.textContent = '添加单词';
+      btn.innerHTML = bookmarkLabel(false, '添加单词');
       btn.className = 'action-btn action-add';
       btn.title = '收藏当前单词到不背单词生词本';
     }
     btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-pressed', String(exists));
   }
 
   // --- Update Sentence Button ---
   function updateSentenceBtn(mode) {
     const btn = document.getElementById('sentenceBtn');
     if (!btn) return;
+    btn.style.display = currentSentence ? '' : 'none';
     if (mode === 'delete') {
-      btn.textContent = '删除例句';
+      btn.innerHTML = bookmarkLabel(true, '例句已添加');
       btn.className = 'action-btn action-delete';
       btn.title = '删除此例句';
       btn.dataset.mode = 'delete';
     } else {
       if (currentSentence) {
-        btn.textContent = '添加例句';
+        btn.innerHTML = bookmarkLabel(false, '添加例句');
         btn.className = 'action-btn action-add';
         btn.title = '收藏当前单词所在的例句';
         btn.dataset.mode = 'add';
@@ -264,11 +273,12 @@
       }
     }
     btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-pressed', String(mode === 'delete'));
   }
 
   // --- Add Word ---
   function addWord(word) {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || !hasDictionaryEntry) return;
     chrome.runtime.sendMessage({
       source: 'langeasyLookup',
       method: 'addNewWord',
@@ -405,9 +415,25 @@
     if (!container) return;
     var height = container.offsetHeight;
     if (height > 0) {
-      window.parent.postMessage({ methodName: 'langeasyLexisSetHeight', height: height }, '*');
+      const word = document.getElementById('langeasyWord');
+      const buttons = document.getElementById('actionButtons');
+      const definition = document.getElementById('langeasyDefinition');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      let width = 300;
+      if (word && buttons && definition && context) {
+        context.font = window.getComputedStyle(word).font;
+        const spacing = window.getComputedStyle(definition);
+        // Allow the full word and both buttons to share a row, plus padding and borders.
+        width = Math.max(width, Math.ceil(context.measureText(word.textContent).width +
+          buttons.getBoundingClientRect().width + parseFloat(spacing.paddingLeft) +
+          parseFloat(spacing.paddingRight) + 16));
+      }
+      window.parent.postMessage({ methodName: 'langeasyLexisSetHeight', height: height, width: width }, '*');
     }
   }
+
+  window.addEventListener('resize', updateHeight);
 
   // --- MutationObserver to auto-update height on content changes ---
   // (started on first buildUI call to ensure DOM is ready)
@@ -440,43 +466,69 @@
   }
 
   // --- Handle Definition Data ---
-  function handleDefinition(data) {
+  async function handleDefinition(data) {
+    const requestId = ++definitionRequestId;
     const { word, sentence, url, info } = data;
     buildUI(word, sentence, url, info);
-
-    // Fetch word definition from remote API
-    fetch('https://langeasy.com.cn/loadLexisList.action?strict=1&word=' + encodeURIComponent(word))
-      .then(function (r) { return r.json(); })
-      .then(function (result) {
-        if (result && result.wordlist && result.wordlist.length > 0) {
-          const w = result.wordlist[0];
-          const lines = w.interpret.split(/\r?\n/);
-          document.getElementById('uk_pron').innerHTML = w.uk_pron;
-          document.getElementById('us_pron').innerHTML = w.us_pron;
-          const interpretDiv = document.getElementById('interpret');
-          interpretDiv.innerHTML = '';
-          lines.forEach(function (line) {
-            const p = document.createElement('p');
-            p.className = 'langeasyline';
-            p.innerHTML = line;
-            interpretDiv.appendChild(p);
-          });
-          // Set audio alt
-          document.querySelectorAll('.langeasy_icon_audio').forEach(function (el) {
-            el.setAttribute('alt', w.word);
-          });
-          // Update iframe height after definition content renders
-          updateHeight();
-        } else {
-          document.getElementById('interpret').innerHTML = '没有找到该单词';
-          updateHeight();
-        }
-      })
-      .catch(function (e) {
-        console.log('Error fetching definition', e);
-        document.getElementById('interpret').innerHTML = '查询失败';
-        updateHeight();
+    const isCurrent = () => requestId === definitionRequestId;
+    document.getElementById('interpret').textContent = '查询中…';
+    let entry = null;
+    try {
+      const response = await fetch('https://langeasy.com.cn/loadLexisList.action?strict=1&word=' + encodeURIComponent(word));
+      if (!response.ok) throw new Error('词典请求失败');
+      const result = await response.json();
+      entry = result?.wordlist?.find(w => w.word && typeof w.interpret === 'string' && w.interpret.trim());
+    } catch (e) {
+      console.log('Error fetching definition', e);
+    }
+    if (!isCurrent()) return;
+    if (entry) {
+      hasDictionaryEntry = true;
+      updateWordBtn(wordExists);
+      currentInfo = entry.interpret;
+      document.getElementById('uk_pron').textContent = entry.uk_pron || '';
+      document.getElementById('us_pron').textContent = entry.us_pron || '';
+      const interpretDiv = document.getElementById('interpret');
+      interpretDiv.innerHTML = '';
+      entry.interpret.split(/\r?\n/).forEach(function (line) {
+        const p = document.createElement('p');
+        p.className = 'langeasyline';
+        p.textContent = line;
+        interpretDiv.appendChild(p);
       });
+      document.querySelectorAll('.langeasy_icon_audio').forEach(function (el) {
+        el.setAttribute('alt', entry.word);
+      });
+      updateHeight();
+      return;
+    }
+
+    // Missing dictionary entries can still be translated and saved as sentence contexts.
+    document.querySelectorAll('#pronTable tr').forEach(function (row, index) {
+      if (index < 2) row.style.display = 'none';
+    });
+    try {
+      // Matches LS_KEYS.LOOKUP_FALLBACK in shared/constants.js (classic iframe script).
+      const settings = await chrome.storage.local.get('langeasyLookupFallbackEnabled');
+      if (!isCurrent()) return;
+      if (settings.langeasyLookupFallbackEnabled === false) {
+        document.getElementById('interpret').textContent = '未查到词典释义';
+        updateHeight();
+        return;
+      }
+      document.getElementById('interpret').textContent = '词典未查到结果，正在使用所选翻译源…';
+      updateHeight();
+      const response = await chrome.runtime.sendMessage({ action: 'translate', text: word });
+      if (!isCurrent()) return;
+      if (!response?.ok || typeof response.translation !== 'string' || !response.translation.trim()) {
+        throw new Error(response?.error || '翻译接口未返回结果');
+      }
+      document.getElementById('interpret').textContent = response.translation;
+    } catch (e) {
+      if (!isCurrent()) return;
+      document.getElementById('interpret').textContent = '翻译失败：' + e.message;
+    }
+    updateHeight();
   }
 
   // Keep the open lookup card consistent with changes from the collection page.

@@ -13,6 +13,7 @@ export const LS_KEYS = {
   MODIFIER_ENABLED: "langeasyIsModifierEnabled",
   MODIFIER_KEY: "langeasyModifierKey",
   MINI_MODE: "langeasyIsMiniMode",
+  LOOKUP_FALLBACK: "langeasyLookupFallbackEnabled",
 };
 
 export const DEFAULT_MODIFIER_KEY = "ctrl";
