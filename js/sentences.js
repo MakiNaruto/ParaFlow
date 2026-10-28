@@ -1,9 +1,13 @@
 // ===== 例句管理页 =====
-// 展示单词本中的单词及所有拥有例句的单词，支持删除单词 / 删除例句。
+// 仅展示拥有例句的单词，支持删除单词 / 删除例句。
 import { escapeHtml, formatUrl } from "./shared/dom.js";
+import { STORAGE_KEYS } from "./shared/constants.js";
+
+let latestLoadId = 0;
 
 // --- Load and Display Data ---
 function loadData() {
+  const loadId = ++latestLoadId;
   const loading = document.getElementById('loading');
   const wordList = document.getElementById('wordList');
   const emptyState = document.getElementById('emptyState');
@@ -17,6 +21,8 @@ function loadData() {
     source: 'langeasyManage',
     method: 'getAllWordsAndSentences'
   }, function (response) {
+    // Ignore older responses when several storage changes trigger loads together.
+    if (loadId !== latestLoadId) return;
     loading.style.display = 'none';
 
     if (response && response.method === 'getAllWordsAndSentencesResult') {
@@ -32,12 +38,11 @@ function loadData() {
         sentencesByWord[s.word].push(s);
       });
 
-      // Collect all words that appear in the wordbook or have sentences
-      const allWords = new Set([...Object.keys(wordbook), ...Object.keys(sentencesByWord)]);
-      const words = Array.from(allWords).sort();
+      // Only show words with saved sentences; wordbook entries remain independent.
+      const words = Object.keys(sentencesByWord).sort();
 
       // Update stats
-      stats.textContent = Object.keys(wordbook).length + ' 个单词，' + sentences.length + ' 条例句';
+      stats.textContent = words.length + ' 个单词，' + sentences.length + ' 条例句';
 
       if (words.length === 0) {
         emptyState.style.display = 'block';
@@ -124,11 +129,6 @@ function loadData() {
           });
 
           wordDiv.appendChild(sentenceList);
-        } else {
-          const noSentences = document.createElement('div');
-          noSentences.className = 'no-sentences';
-          noSentences.textContent = '暂无例句';
-          wordDiv.appendChild(noSentences);
         }
 
         wordList.appendChild(wordDiv);
@@ -173,5 +173,11 @@ function deleteSentence(sentenceId, word) {
 
 // --- Init ---
 document.addEventListener('DOMContentLoaded', function () {
+  chrome.storage.onChanged.addListener(function (changes, areaName) {
+    if (areaName === 'local' &&
+        (changes[STORAGE_KEYS.SENTENCES] || changes[STORAGE_KEYS.WORDBOOK])) {
+      loadData();
+    }
+  });
   loadData();
 });
