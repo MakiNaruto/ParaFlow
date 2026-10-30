@@ -95,7 +95,8 @@ body.modal-open .vendor-modal { display:block; }
 .vendor-modal-field { margin:14px 0; }
 .vendor-modal-field label { display:block; font-size:12px; font-weight:600; margin-bottom:6px; }
 .vendor-modal-field input, .vendor-modal-field textarea { width:100%; border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:9px 10px; color:var(--ink); font-size:12px; }
-.vendor-modal-field textarea { resize:vertical; min-height:100px; line-height:1.6; }
+.vendor-modal-field textarea { resize:none; overflow-y:hidden; min-height:100px; line-height:1.6; }
+#llm_prompt { field-sizing:content; }
 .vendor-modal-hint { color:var(--muted); font-size:11px; line-height:1.6; margin-top:5px; overflow-wrap:anywhere; }
 .vendor-modal-footer { position:sticky; bottom:0; z-index:2; display:flex; justify-content:flex-end; gap:8px; padding:14px 22px; border-top:1px solid var(--line); background:var(--surface); }
 .modal-btn { border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px; padding:8px 18px; font-size:13px; }
@@ -117,9 +118,6 @@ body.modal-open .vendor-modal { display:block; }
 .llm-protocol-btn:hover { background:var(--surface); }
 .llm-prompt-actions { text-align:right; }
 .llm-prompt-actions button { background:transparent; border:0; padding:5px 0; font-size:11px; color:var(--accent); }
-.prompt-details { border-top:1px solid var(--line); padding-top:12px; }
-.prompt-details summary { color:var(--muted); font-size:12px; }
-.prompt-details[open] summary { margin-bottom:12px; }
 
 .vendor-type-header { width:100%; border:0; background:transparent; text-align:left; color:var(--ink); font-family:inherit; }
 

@@ -42,8 +42,8 @@ const ADDABLE_VENDOR_TYPES = {
     translate: baiduTranslate,
     defaultUrl: "https://fanyi-api.baidu.com/api/trans/vip/translate",
     configFields: [
-      { key: "appId", label: "APPID", placeholder: "在百度翻译开放平台申请", type: "text", required: true },
-      { key: "appKey", label: "APPKEY", placeholder: "在百度翻译开放平台申请", type: "password", required: true },
+      { key: "appId", label: "APP ID", placeholder: "在百度翻译开放平台申请", type: "text", required: true },
+      { key: "appKey", label: "API Key", placeholder: "在百度翻译开放平台申请", type: "password", required: true },
     ],
   },
 };

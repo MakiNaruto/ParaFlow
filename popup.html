@@ -137,8 +137,7 @@
             <label for="llm_model">模型名称 <span style="color:#c62828;font-weight:bold;">*</span></label>
             <input type="text" id="llm_model" placeholder="" />
           </div>
-          <details class="vendor-modal-field prompt-details">
-            <summary>高级设置 · 翻译提示词</summary>
+          <div class="vendor-modal-field">
             <label for="llm_prompt">系统提示词</label>
             <textarea id="llm_prompt" rows="6" placeholder="留空则使用默认翻译提示词"></textarea>
             <div class="llm-prompt-actions">
@@ -147,7 +146,7 @@
             <div class="vendor-modal-hint">
               大模型翻译指令，可自由修改。可用 {targetLang} / {targetLangNative} 表示目标语言（英文名/中文名），翻译时会自动替换。请保留 {{XT_n}} 占位符与换行。
             </div>
-          </details>
+          </div>
         </div>
       </div>
       <div class="vendor-modal-footer">

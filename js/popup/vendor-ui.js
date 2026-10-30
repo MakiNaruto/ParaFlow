@@ -198,6 +198,33 @@ export function initVendorSelector() {
   var llmProtocolHint = document.getElementById('llm_protocol_hint');
   var llmProtocolBtns = document.querySelectorAll('#llm_protocol_btns .llm-protocol-btn');
 
+  // 优先由浏览器根据内容排版高度；旧版 Chromium 才手动测量。
+  var promptSizesToContent = CSS.supports('field-sizing', 'content');
+  function resizeLlmPrompt() {
+    if (promptSizesToContent) {
+      llmPrompt.style.removeProperty('height');
+      return;
+    }
+    if (!llmPrompt.getClientRects().length) return;
+    llmPrompt.style.height = 'auto';
+    var borderHeight = llmPrompt.offsetHeight - llmPrompt.clientHeight;
+    llmPrompt.style.height = Math.ceil(llmPrompt.scrollHeight + borderHeight + 2) + 'px';
+    llmPrompt.scrollTop = 0;
+  }
+
+  llmPrompt.addEventListener('input', resizeLlmPrompt);
+  window.addEventListener('resize', resizeLlmPrompt);
+  // 页面出现滚动条后可用宽度可能变化，换行后需重新测量高度。
+  var promptWidth = 0;
+  var promptResizeObserver = new ResizeObserver(function (entries) {
+    var width = entries[0].contentRect.width;
+    if (width > 0 && width !== promptWidth) {
+      promptWidth = width;
+      resizeLlmPrompt();
+    }
+  });
+  promptResizeObserver.observe(llmPrompt);
+
   // ---- 状态 ----
   var editingId = null;      // null = 添加模式，否则为自定义源 id
   var editingType = null;    // 编辑模式记录原始 type（generic 编辑用）
@@ -220,6 +247,7 @@ export function initVendorSelector() {
     if (which === 'llm' && activeType === 'llm') {
       modalNameField.style.display = open ? 'block' : 'none';
       llmFields.style.display = open ? 'block' : 'none';
+      if (open) resizeLlmPrompt();
     }
   }
 
@@ -307,7 +335,7 @@ export function initVendorSelector() {
       link.rel = 'noopener noreferrer';
       link.textContent = typeDef.id === 'alibaba'
         ? '获取 AccessKey：阿里云 AccessKey 管理'
-        : '官方获取入口：百度翻译 APPID 与密钥';
+        : '官方获取入口：百度翻译 APP ID 与 API Key';
       help.appendChild(link);
       credentialFields.appendChild(help);
     }
@@ -358,6 +386,7 @@ export function initVendorSelector() {
       llmPrompt.value = DEFAULT_LLM_PROMPT;
     }
     applyProtocolDefaults();
+    resizeLlmPrompt();
   }
 
   llmProtocolBtns.forEach(function (btn) {
@@ -370,6 +399,7 @@ export function initVendorSelector() {
   if (llmPromptReset) {
     llmPromptReset.addEventListener('click', function () {
       llmPrompt.value = DEFAULT_LLM_PROMPT;
+      resizeLlmPrompt();
       llmPrompt.focus();
     });
   }
@@ -458,8 +488,7 @@ export function initVendorSelector() {
   // popup 窗口随弹窗内容自适应宽高（见 css/popup.css）
   function openModal() {
     document.body.classList.add('modal-open');
-    const advanced = modal.querySelector('details');
-    if (advanced) advanced.open = false;
+    resizeLlmPrompt();
     modalClose.focus();
   }
 
@@ -476,6 +505,7 @@ export function initVendorSelector() {
       llmApiKey.value = full.apiKey || '';
       llmModel.value = full.model || '';
       llmPrompt.value = (full.prompt && full.prompt.trim()) ? full.prompt : DEFAULT_LLM_PROMPT;
+      resizeLlmPrompt();
       applyProtocolDefaults();
       // 历史版本保存不全的记录：提示补全后保存一次以修复
       if (!full.apiKey || !full.url || !full.model) {
@@ -515,7 +545,7 @@ export function initVendorSelector() {
     credentialFields.innerHTML = '';
     credentialFields.dataset.vendorType = 'generic';
 
-    [["url", "URL", full.url, "text", false], ["appId", "APPID", full.appId, "text", false], ["appKey", "APPKEY", full.appKey, "password", false]].forEach(function (f) {
+    [["url", "URL", full.url, "text", false], ["appId", "APP ID", full.appId, "text", false], ["appKey", "API Key", full.appKey, "password", false]].forEach(function (f) {
       var fieldGroup = document.createElement('div');
       fieldGroup.className = 'vendor-modal-field';
       var label = document.createElement('label');
